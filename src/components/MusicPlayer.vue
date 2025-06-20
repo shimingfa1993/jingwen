@@ -71,19 +71,19 @@ export default {
       duration: 0,
       playlist: [
         {
-          title: "我们的回忆",
-          artist: "爱情主题曲",
-          url: "/music/love-song-1.mp3" // 你需要添加实际的音乐文件
+          title: "致刘静文",
+          artist: "十三年纪念版",
+          url: "/music/love-song-jingwen.mp3"
         },
         {
-          title: "13年的时光",
-          artist: "纪念版",
-          url: "/music/love-song-2.mp3"
+          title: "我们的十三年",
+          artist: "爱情回忆录",
+          url: "/music/thirteen-years.mp3"
         },
         {
-          title: "生日快乐",
-          artist: "特别版",
-          url: "/music/birthday-song.mp3"
+          title: "静文，我爱你",
+          artist: "真心告白",
+          url: "/music/love-confession.mp3"
         }
       ]
     }

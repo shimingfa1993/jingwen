@@ -1,7 +1,7 @@
 {
   "name": "love-memory-site",
   "version": "1.0.0",
-  "description": "A romantic memory website for my beloved girlfriend's birthday",
+  "description": "致吾挚爱-刘静文.生日快乐",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -26,21 +26,7 @@
     "eslint-plugin-vue": "^10.2.0",
     "vue-template-compiler": "^2.6.14"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser",
-      "requireConfigFile": false
-    },
-    "rules": {}
-  },
+
   "browserslist": [
     "> 1%",
     "last 2 versions",

@@ -4,7 +4,7 @@
       <!-- Logo/Brand -->
       <router-link to="/" class="nav-brand">
         <span class="heart-icon">💕</span>
-        <span class="brand-text">Our Story</span>
+        <span class="brand-text">静文.生日快乐</span>
       </router-link>
       
       <!-- Desktop Menu -->
@@ -35,7 +35,7 @@
         </li>
         <li class="nav-item">
           <router-link to="/wishes" class="nav-link special" @click="closeMenu">
-            <span class="nav-text">生日祝福</span>
+            <span class="nav-text">爱的告白</span>
             <span class="nav-indicator"></span>
           </router-link>
         </li>

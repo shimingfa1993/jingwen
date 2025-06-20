@@ -97,8 +97,8 @@ export default {
           title: '第一张合照',
           description: '我们的第一张正式合照，那时候还很青涩，但笑容都是那么真诚。',
           date: '2011年春天',
-          url: '/images/gallery/first-photo.jpg',
-          thumbnail: '/images/gallery/thumbs/first-photo.jpg'
+          url: '@/videos/one.jpg',
+          thumbnail: '@/videos/one.jpg'
         },
         {
           type: 'video',
@@ -106,8 +106,8 @@ export default {
           title: '表白视频',
           description: '那个紧张又甜蜜的表白时刻，现在看来还是会脸红心跳。',
           date: '2011年夏天',
-          url: '/videos/confession.mp4',
-          thumbnail: '/images/gallery/thumbs/confession.jpg'
+          url: '@/videos/hero-video.mp4',
+          thumbnail: '@/videos/one.jpg'
         },
         {
           type: 'image',
@@ -115,8 +115,8 @@ export default {
           title: '海边漫步',
           description: '我们的第一次海边旅行，夕阳西下，手牵手走在沙滩上。',
           date: '2012年夏天',
-          url: '/images/gallery/beach-walk.jpg',
-          thumbnail: '/images/gallery/thumbs/beach-walk.jpg'
+          url: '@/videos/one.jpg',
+          thumbnail: '@/videos/one.jpg'
         },
         {
           type: 'image',
@@ -124,8 +124,8 @@ export default {
           title: '大学毕业',
           description: '毕业典礼上的我们，虽然要面临分离，但相信爱情会让我们更加坚强。',
           date: '2014年',
-          url: '/images/gallery/graduation.jpg',
-          thumbnail: '/images/gallery/thumbs/graduation.jpg'
+          url: '@/videos/one.jpg',
+          thumbnail: '@/videos/one.jpg'
         },
         {
           type: 'image',
@@ -133,8 +133,8 @@ export default {
           title: '一起做饭',
           description: '疫情期间在家一起做饭的日子，简单的幸福最珍贵。',
           date: '2020年',
-          url: '/images/gallery/cooking.jpg',
-          thumbnail: '/images/gallery/thumbs/cooking.jpg'
+          url: '@/videos/one.jpg',
+          thumbnail: '@/videos/one.jpg'
         },
         {
           type: 'video',
@@ -142,8 +142,8 @@ export default {
           title: '十周年纪念',
           description: '十年爱情的回顾视频，每一个画面都是满满的回忆。',
           date: '2021年',
-          url: '/videos/ten-years.mp4',
-          thumbnail: '/images/gallery/thumbs/ten-years.jpg'
+          url: '@/videos/hero-video.mp4',
+          thumbnail: '@/videos/one.jpg'
         }
         // 你可以继续添加更多的照片和视频
       ]

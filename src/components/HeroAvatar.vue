@@ -7,14 +7,20 @@
         <div class="avatar-video" ref="avatarContainer">
           <video 
             ref="heroVideo"
-            src="/videos/hero-video.mp4" 
+            src="@/videos/hero-video.mp4" 
             autoplay 
             muted 
             loop 
             playsinline
+            preload="auto"
             @error="setDefaultVideo"
             @loadeddata="onVideoLoaded"
+            @canplay="onVideoCanPlay"
+            @play="onVideoPlay"
+            @pause="onVideoPause"
+            @ended="onVideoEnded"
             @click="toggleVideo"
+            @mousedown="onUserInteraction"
           ></video>
           <div class="video-overlay" v-if="!isVideoLoaded">
             <div class="loading-spinner"></div>
@@ -47,8 +53,8 @@
       <div class="welcome-message">
         <h1 class="welcome-title">
           <span class="title-word">欢迎来到</span>
-          <span class="title-word highlight">我们的</span>
-          <span class="title-word">爱情世界</span>
+          <span class="title-word highlight">静文</span>
+          <span class="title-word">专属生日</span>
         </h1>
         <p class="welcome-subtitle">
           这里记录着13年来最珍贵的回忆
@@ -58,13 +64,13 @@
       
       <!-- Action Buttons -->
       <div class="avatar-actions">
-        <button @click="exploreMemories" class="btn-explore">
+        <button @click="exploreMemories" @mousedown="onUserInteraction" class="btn-explore">
           <span>开始探索</span>
           <div class="btn-shine"></div>
         </button>
-        <button @click="closeAvatar" class="btn-close">
+        <!-- <button @click="closeAvatar" class="btn-close">
           稍后再看
-        </button>
+        </button> -->
       </div>
       
       <!-- Background Effects -->
@@ -99,15 +105,68 @@ export default {
       this.animationStart = true
     }, 100)
     
+    // Initialize video after component is mounted
+    this.$nextTick(() => {
+      this.initializeVideo()
+    })
+    
     // Auto close after 10 seconds if user doesn't interact
     setTimeout(() => {
       if (this.isVisible) {
         this.closeAvatar()
       }
     }, 10000)
+    
+    // Add keyboard shortcut for video diagnostics (Ctrl+D)
+    document.addEventListener('keydown', this.handleKeydown)
+  },
+  beforeDestroy() {
+    // Clean up event listeners
+    document.removeEventListener('keydown', this.handleKeydown)
   },
   methods: {
+    initializeVideo() {
+      const video = this.$refs.heroVideo
+      if (!video) {
+        console.log('Video element not found')
+        return
+      }
+      
+      console.log('Initializing video...')
+      
+      // Ensure video properties are set correctly
+      video.muted = true
+      video.loop = true
+      video.playsInline = true
+      
+      // Add additional event listeners for debugging
+      video.addEventListener('loadstart', () => console.log('Video loadstart'))
+      video.addEventListener('loadedmetadata', () => console.log('Video metadata loaded'))
+      video.addEventListener('canplaythrough', () => console.log('Video can play through'))
+      video.addEventListener('waiting', () => console.log('Video waiting'))
+      video.addEventListener('stalled', () => console.log('Video stalled'))
+      
+      // Try to load and play the video
+      video.load() // Force reload
+      
+      // Wait a bit then try to play
+      setTimeout(() => {
+        this.ensureVideoPlaying()
+      }, 500)
+    },
+    
+    handleKeydown(event) {
+      // Ctrl+D to diagnose video
+      if (event.ctrlKey && event.key === 'd') {
+        event.preventDefault()
+        this.diagnoseVideo()
+      }
+    },
+    
     closeAvatar() {
+      // Clean up event listeners
+      document.removeEventListener('keydown', this.handleKeydown)
+      
       this.animationStart = false
       setTimeout(() => {
         this.isVisible = false
@@ -115,27 +174,118 @@ export default {
       }, 500)
     },
     exploreMemories() {
+      // Ensure video is playing before user explores
+      this.ensureVideoPlaying()
       this.$emit('explore')
       this.closeAvatar()
     },
+    
+    // Add user interaction handler for better video control
+    onUserInteraction() {
+      console.log('User interaction detected')
+      this.ensureVideoPlaying()
+      // Try to unmute after user interaction
+      setTimeout(() => {
+        this.tryPlayWithSound()
+      }, 100)
+    },
     onVideoLoaded() {
       this.isVideoLoaded = true
+      console.log('Video loaded')
+      // Don't automatically assume it's playing
+      this.checkVideoPlayingState()
+    },
+    
+    onVideoCanPlay() {
+      console.log('Video can play')
+      this.ensureVideoPlaying()
+    },
+    
+    onVideoPlay() {
+      console.log('Video play event')
       this.isVideoPlaying = true
-      // Try to play video with sound after user interaction
-      this.tryPlayWithSound()
+    },
+    
+    onVideoPause() {
+      console.log('Video pause event')
+      this.isVideoPlaying = false
+    },
+    
+    onVideoEnded() {
+      console.log('Video ended event')
+      // Should auto-restart due to loop attribute, but ensure it does
+      const video = this.$refs.heroVideo
+      if (video) {
+        video.currentTime = 0
+        video.play().catch(console.log)
+      }
+    },
+    
+    checkVideoPlayingState() {
+      const video = this.$refs.heroVideo
+      if (video) {
+        this.isVideoPlaying = !video.paused && !video.ended
+        this.isVideoMuted = video.muted
+        console.log('Video state:', {
+          paused: video.paused,
+          ended: video.ended,
+          currentTime: video.currentTime,
+          duration: video.duration,
+          muted: video.muted
+        })
+      }
+    },
+    
+    ensureVideoPlaying() {
+      const video = this.$refs.heroVideo
+      if (video && video.paused) {
+        console.log('Attempting to play video...')
+        video.play().then(() => {
+          console.log('Video started playing successfully')
+          this.isVideoPlaying = true
+        }).catch(error => {
+          console.log('Video play failed:', error)
+          // Try with different approach
+          this.forceVideoPlay()
+        })
+      }
+    },
+    
+    forceVideoPlay() {
+      const video = this.$refs.heroVideo
+      if (video) {
+        // Ensure video is muted for autoplay compliance
+        video.muted = true
+        this.isVideoMuted = true
+        
+        // Reset video to beginning
+        video.currentTime = 0
+        
+        // Try to play
+        video.play().then(() => {
+          console.log('Force play successful')
+          this.isVideoPlaying = true
+        }).catch(error => {
+          console.log('Force play also failed:', error)
+        })
+      }
     },
     toggleVideo() {
       const video = this.$refs.heroVideo
       if (!video) return
       
+      console.log('Toggle video, current state:', this.isVideoPlaying)
+      
       if (this.isVideoPlaying) {
         video.pause()
-        this.isVideoPlaying = false
+        console.log('Video paused')
       } else {
         video.play().then(() => {
+          console.log('Video play successful')
           this.isVideoPlaying = true
-        }).catch(e => {
-          console.log('Video play failed:', e)
+        }).catch(error => {
+          console.log('Video play failed:', error)
+          this.forceVideoPlay()
         })
       }
     },
@@ -147,22 +297,28 @@ export default {
       this.isVideoMuted = video.muted
     },
     tryPlayWithSound() {
-      // After initial load, try to unmute and play with sound
+      // Only try to unmute after user interaction to comply with autoplay policies
       setTimeout(() => {
         const video = this.$refs.heroVideo
-        if (video && this.isVideoLoaded) {
+        if (video && this.isVideoLoaded && this.isVideoPlaying) {
+          console.log('Attempting to unmute video...')
           video.muted = false
           this.isVideoMuted = false
-          video.play().catch(() => {
-            // If fails, keep muted
-            video.muted = true
-            this.isVideoMuted = true
-          })
+          
+          // Check if video is still playing after unmuting
+          if (video.paused) {
+            video.play().catch(error => {
+              console.log('Video play with sound failed, keeping muted:', error)
+              video.muted = true
+              this.isVideoMuted = true
+            })
+          }
         }
-      }, 1000)
+      }, 2000) // Increased delay to ensure video is stable
     },
     setDefaultVideo(event) {
       // If video fails to load, set a default animated gradient
+      console.error('Video failed to load:', event)
       this.isVideoLoaded = false
       const container = this.$refs.avatarContainer
       if (container) {
@@ -178,6 +334,32 @@ export default {
             视频加载失败
           </div>
         `
+      }
+    },
+    
+    // Video diagnostics for debugging
+    diagnoseVideo() {
+      const video = this.$refs.heroVideo
+      if (!video) {
+        console.log('❌ Video element not found')
+        return
+      }
+      
+      console.log('🔍 Video Diagnostics:')
+      console.log('  📹 Video source:', video.src)
+      console.log('  ▶️ Can play:', !video.error)
+      console.log('  🔄 Ready state:', video.readyState)
+      console.log('  ⏸️ Paused:', video.paused)
+      console.log('  🔚 Ended:', video.ended)
+      console.log('  🔇 Muted:', video.muted)
+      console.log('  🔁 Loop:', video.loop)
+      console.log('  📱 Plays inline:', video.playsInline)
+      console.log('  ⏱️ Current time:', video.currentTime)
+      console.log('  ⏳ Duration:', video.duration)
+      console.log('  📶 Network state:', video.networkState)
+      
+      if (video.error) {
+        console.error('  ❌ Video error:', video.error)
       }
     }
   }
@@ -265,6 +447,10 @@ export default {
   object-fit: cover;
   border-radius: 50%;
   transition: all 0.3s ease;
+  /* Ensure video is properly rendered */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .avatar-video:hover video {

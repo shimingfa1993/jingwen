@@ -13,21 +13,21 @@
         <div class="hero-content">
           <div class="hero-text" :class="{ 'loaded': isLoaded }">
             <h1 class="hero-title">
-              <span class="title-line">我们的</span>
-              <span class="title-line highlight">爱情故事</span>
-              <span class="title-line">13年如一日</span>
+              <span class="title-line">致我最爱的</span>
+              <span class="title-line highlight">刘静文</span>
+              <span class="title-line">生日快乐</span>
             </h1>
             <p class="hero-subtitle">
-              从相遇到相爱，从青涩到成熟<br>
-              这里记录着我们最珍贵的回忆<br>
-              <span class="special-text">献给我最爱的你 ❤️</span>
+              十三年零150天的相伴，从青涩到成熟<br>
+              4898天，5.29亿次心跳，每一刻都为你而动<br>
+              <span class="special-text">静文，你是我生命中最美好的遇见 ❤️</span>
             </p>
             <div class="hero-actions">
               <router-link to="/timeline" class="btn btn-primary">
-                开始我们的旅程
+                我们的十三年
               </router-link>
               <router-link to="/gallery" class="btn btn-outline">
-                查看相册
+                静文的美丽瞬间
               </router-link>
             </div>
           </div>
@@ -39,12 +39,12 @@
               <div class="stat-label">相爱的日子</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number" ref="photosCount">0</div>
-              <div class="stat-label">珍贵照片</div>
+              <div class="stat-number" ref="heartbeatsCount">0</div>
+              <div class="stat-label">心动时刻</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number" ref="memoriesCount">0</div>
-              <div class="stat-label">美好回忆</div>
+              <div class="stat-number" ref="hoursCount">0</div>
+              <div class="stat-label">陪伴钟表</div>
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@
     <!-- Features Section -->
     <section class="features-section section">
       <div class="container">
-        <h2 class="section-title" data-aos="fade-up">探索我们的回忆</h2>
+        <h2 class="section-title" data-aos="fade-up">静文，我们的十三年回忆</h2>
         <div class="features-grid">
           <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
             <div class="feature-icon">⏰</div>
@@ -92,10 +92,10 @@
           </div>
           
           <div class="feature-card special" data-aos="fade-up" data-aos-delay="400">
-            <div class="feature-icon">🎂</div>
-            <h3>生日祝福</h3>
-            <p>特别为你准备的生日惊喜，愿你永远快乐美丽</p>
-            <router-link to="/wishes" class="feature-link">查看祝福 →</router-link>
+            <div class="feature-icon">💕</div>
+            <h3>爱的告白</h3>
+            <p>十三年来想对静文说的每一句情话，愿我们的爱情天长地久</p>
+            <router-link to="/wishes" class="feature-link">查看告白 →</router-link>
           </div>
         </div>
       </div>
@@ -106,12 +106,12 @@
       <div class="container">
         <div class="quote-content" data-aos="fade-up">
           <blockquote class="love-quote">
-            "十三年的时光见证了我们的成长，<br>
-            从青涩的学生时代到现在的我们，<br>
-            爱情让我们变得更好，也让我们更加珍惜彼此。<br>
+            "十三年零150天的时光见证了我们的成长，<br>
+            从2012年1月25日那个美好的开始，<br>
+            静文，你让我的世界变得更加美好。<br>
             愿我们的爱情故事永远没有终点..."
           </blockquote>
-          <cite class="quote-author">— 写给我最爱的你</cite>
+          <cite class="quote-author">— 写给我最爱的刘静文</cite>
         </div>
       </div>
     </section>
@@ -131,9 +131,9 @@ export default {
       isLoaded: false,
       showHeroAvatar: true, // Show hero avatar on first load
       stats: {
-        days: 4745, // 13 years approximately
-        photos: 1337,
-        memories: 999
+        days: 4898, // 总天数：4,898天
+        heartbeats: 529000000, // 总心跳次数：约5.29亿次心跳
+        hours: 117552 // 总小时：117,552小时
       }
     }
   },
@@ -149,8 +149,8 @@ export default {
     animateStats() {
       // Animate counting up for statistics
       this.animateCounter(this.$refs.daysCount, this.stats.days, 2000)
-      setTimeout(() => this.animateCounter(this.$refs.photosCount, this.stats.photos, 1500), 300)
-      setTimeout(() => this.animateCounter(this.$refs.memoriesCount, this.stats.memories, 1200), 600)
+      setTimeout(() => this.animateCounter(this.$refs.heartbeatsCount, this.stats.heartbeats, 1500), 300)
+      setTimeout(() => this.animateCounter(this.$refs.hoursCount, this.stats.hours, 1200), 600)
     },
     
     animateCounter(element, target, duration) {
@@ -226,6 +226,8 @@ export default {
   position: relative;
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%);
 }
+
+
 
 .hero-content {
   display: grid;

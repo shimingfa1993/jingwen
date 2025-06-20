@@ -47,63 +47,63 @@ export default {
           title: '我们的相遇',
           description: '那个春暖花开的日子，我们在校园里第一次相遇。你的笑容如春光般温暖，从那一刻起，我就知道你是那个特别的人。',
           icon: '💕',
-          image: '/images/timeline/first-meet.jpg' // 你需要添加实际图片
+          image: '@/videos/one.jpg'
         },
         {
           date: '2011年夏天',
           title: '确定关系',
           description: '经过几个月的相处，我们正式确定了恋爱关系。那个夏日的黄昏，我鼓起勇气对你表白，你的一声"好"让我的世界瞬间明亮。',
           icon: '❤️',
-          image: '/images/timeline/relationship.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2012年',
           title: '第一次旅行',
           description: '我们的第一次双人旅行，虽然预算有限，但那份快乐是无价的。海边的夕阳，山间的清晨，每一个瞬间都成为了珍贵的回忆。',
           icon: '🚗',
-          image: '/images/timeline/first-trip.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2014年',
           title: '大学毕业',
           description: '我们一起度过了大学时光，一起奋斗，一起成长。毕业时的不舍，让我们更加珍惜彼此，也更加坚定了一起走下去的决心。',
           icon: '🎓',
-          image: '/images/timeline/graduation.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2016年',
           title: '开始工作',
           description: '步入职场的我们，面临着新的挑战。虽然工作忙碌，但我们依然坚持着相互支持，一起为美好的未来努力奋斗。',
           icon: '💼',
-          image: '/images/timeline/work.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2018年',
           title: '五周年纪念',
           description: '相爱五年，我们已经从青涩的学生变成了成熟的大人。这一年我们学会了更多的包容和理解，爱情也变得更加深刻。',
           icon: '🎉',
-          image: '/images/timeline/five-years.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2020年',
           title: '疫情期间',
           description: '特殊的一年让我们更加珍惜相聚的时光。居家的日子里，我们一起做饭、看电影、分享彼此的想法，发现爱情的另一种美好。',
           icon: '🏠',
-          image: '/images/timeline/pandemic.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2022年',
           title: '十周年里程碑',
           description: '十年的爱情长跑，我们经历了太多的风雨和彩虹。感谢时光见证了我们的成长，也见证了这份不变的真心。',
           icon: '💖',
-          image: '/images/timeline/ten-years.jpg'
+          image: '@/videos/one.jpg'
         },
         {
           date: '2024年',
           title: '十三年的今天',
           description: '如今的我们，依然像初恋时那样深爱着彼此。这个特别的网站，是我想对你说的千言万语的总结：愿我们的爱情故事永远没有终点。',
           icon: '🎂',
-          image: '/images/timeline/now.jpg'
+          image: '@/videos/one.jpg'
         }
       ]
     }

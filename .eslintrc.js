@@ -9,6 +9,12 @@ module.exports = {
     'plugin:vue/essential',
     'eslint:recommended'
   ],
+  settings: {
+    // Explicitly set Vue version to 2.x
+    'vue': {
+      version: '2'
+    }
+  },
   parserOptions: {
     parser: '@babel/eslint-parser',
     requireConfigFile: false,
@@ -20,6 +26,8 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-unused-vars': 'warn',
     'vue/no-unused-components': 'warn',
-    'vue/multi-word-component-names': 'off'
+    'vue/multi-word-component-names': 'off',
+    // Vue 2 specific rules - disable Vue 3 lifecycle warnings
+    'vue/no-deprecated-destroyed-lifecycle': 'off'
   }
 } 
