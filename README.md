@@ -108,11 +108,11 @@ stats: {
 在 `src/views/Timeline.vue` 中的 `timelineItems` 数组中修改：
 ```javascript
 {
-  date: '2011年春天', // 修改日期
+  date: '2011年夏天', // 修改日期
   title: '我们的相遇', // 修改标题
   description: '...', // 修改描述
   icon: '💕', // 修改图标
-  image: '/images/timeline/first-meet.jpg' // 添加图片路径
+  image: '/images/1.jpg' // 添加图片路径
 }
 ```
 

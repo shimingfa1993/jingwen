@@ -10,7 +10,7 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: {
-      title: '我们的爱情故事'
+      title: 'APS小工具'
     }
   },
   {

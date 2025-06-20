@@ -34,7 +34,24 @@
             :data-aos-delay="index * 50"
           >
             <div class="gallery-image">
-              <img :src="item.thumbnail || item.url" :alt="item.title" loading="lazy" />
+              <!-- 图片类型 -->
+              <img 
+                v-if="item.type === 'image'" 
+                :src="item.thumbnail || item.url" 
+                :alt="item.title" 
+                loading="lazy" 
+              />
+              <!-- 视频类型 - 使用video元素显示首帧 -->
+              <video 
+                v-else-if="item.type === 'video'"
+                :src="item.url"
+                preload="metadata"
+                muted
+                playsinline
+                @loadedmetadata="setVideoTime"
+                class="video-thumbnail"
+              >
+              </video>
               <div class="gallery-overlay">
                 <div class="gallery-info">
                   <h3>{{ item.title }}</h3>
@@ -57,7 +74,23 @@
         <button class="modal-close" @click="closeModal">×</button>
         <div class="modal-media">
           <img v-if="currentItem.type === 'image'" :src="currentItem.url" :alt="currentItem.title" />
-          <video v-else-if="currentItem.type === 'video'" :src="currentItem.url" controls autoplay></video>
+          <video 
+            v-else-if="currentItem.type === 'video'" 
+            :src="currentItem.url" 
+            controls 
+            autoplay 
+            muted
+            preload="metadata"
+            playsinline
+            @error="handleVideoError"
+            @loadeddata="handleVideoLoaded"
+          >
+            您的浏览器不支持视频播放。
+          </video>
+          <div v-if="videoError" class="video-error">
+            <p>😔 视频加载失败</p>
+            <p>{{ currentItem.title }}</p>
+          </div>
         </div>
         <div class="modal-info">
           <h3>{{ currentItem.title }}</h3>
@@ -82,6 +115,7 @@ export default {
       showModal: false,
       currentItem: null,
       currentIndex: 0,
+      videoError: false,
       categories: [
         { id: 'all', name: '全部' },
         { id: 'together', name: '我们在一起' },
@@ -91,61 +125,784 @@ export default {
         { id: 'video', name: '视频回忆' }
       ],
       galleryItems: [
+        // 从14开始的图片 - 特殊时刻系列 (14-20)
         {
           type: 'image',
-          category: 'together',
-          title: '第一张合照',
-          description: '我们的第一张正式合照，那时候还很青涩，但笑容都是那么真诚。',
-          date: '2011年春天',
-          url: '@/videos/one.jpg',
-          thumbnail: '@/videos/one.jpg'
+          category: 'special',
+          title: '特殊时刻 14',
+          description: '珍贵的纪念时刻，每一张都充满着特殊的意义。',
+          date: '2023年',
+          url: '/images/14.jpg',
+          thumbnail: '/images/14.jpg'
         },
         {
-          type: 'video',
+          type: 'image',
           category: 'special',
-          title: '表白视频',
-          description: '那个紧张又甜蜜的表白时刻，现在看来还是会脸红心跳。',
-          date: '2011年夏天',
-          url: '@/videos/hero-video.mp4',
-          thumbnail: '@/videos/one.jpg'
+          title: '特殊时刻 15',
+          description: '值得铭记的美好瞬间。',
+          date: '2023年',
+          url: '/images/15.jpg',
+          thumbnail: '/images/15.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊时刻 16',
+          description: '难忘的记忆片段。',
+          date: '2023年',
+          url: '/images/16.jpg',
+          thumbnail: '/images/16.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊时刻 17',
+          description: '心动的瞬间定格。',
+          date: '2023年',
+          url: '/images/17.jpg',
+          thumbnail: '/images/17.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊时刻 18',
+          description: '温馨的回忆时光。',
+          date: '2023年',
+          url: '/images/18.jpg',
+          thumbnail: '/images/18.jpg'
+        },
+        
+        // 旅行足迹系列 (30-45)
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 30',
+          description: '美丽的旅行足迹，记录我们走过的每一个地方。',
+          date: '2023年春',
+          url: '/images/30.jpg',
+          thumbnail: '/images/30.jpg'
         },
         {
           type: 'image',
           category: 'travel',
-          title: '海边漫步',
-          description: '我们的第一次海边旅行，夕阳西下，手牵手走在沙滩上。',
-          date: '2012年夏天',
-          url: '@/videos/one.jpg',
-          thumbnail: '@/videos/one.jpg'
+          title: '旅行回忆 31',
+          description: '山水之间的美好时光。',
+          date: '2023年春',
+          url: '/images/31.jpg',
+          thumbnail: '/images/31.jpg'
         },
         {
           type: 'image',
-          category: 'special',
-          title: '大学毕业',
-          description: '毕业典礼上的我们，虽然要面临分离，但相信爱情会让我们更加坚强。',
-          date: '2014年',
-          url: '@/videos/one.jpg',
-          thumbnail: '@/videos/one.jpg'
+          category: 'travel',
+          title: '旅行回忆 32',
+          description: '探索未知的精彩旅程。',
+          date: '2023年春',
+          url: '/images/32.jpg',
+          thumbnail: '/images/32.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 33',
+          description: '风景如画的美好时刻。',
+          date: '2023年春',
+          url: '/images/33.jpg',
+          thumbnail: '/images/33.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 34',
+          description: '一起看过的美丽风景。',
+          date: '2023年春',
+          url: '/images/34.jpg',
+          thumbnail: '/images/34.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 35',
+          description: '难忘的旅行经历。',
+          date: '2023年春',
+          url: '/images/35.jpg',
+          thumbnail: '/images/35.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 36',
+          description: '共同的冒险时光。',
+          date: '2023年夏',
+          url: '/images/36.jpg',
+          thumbnail: '/images/36.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 37',
+          description: '夏日旅行的美好记忆。',
+          date: '2023年夏',
+          url: '/images/37.jpg',
+          thumbnail: '/images/37.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 38',
+          description: '阳光下的快乐时光。',
+          date: '2023年夏',
+          url: '/images/38.jpg',
+          thumbnail: '/images/38.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 39',
+          description: '海边的浪漫时光。',
+          date: '2023年夏',
+          url: '/images/39.jpg',
+          thumbnail: '/images/39.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 40',
+          description: '山间的清新空气。',
+          date: '2023年夏',
+          url: '/images/40.jpg',
+          thumbnail: '/images/40.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 41',
+          description: '探索新地方的兴奋。',
+          date: '2023年夏',
+          url: '/images/41.jpg',
+          thumbnail: '/images/41.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 42',
+          description: '一起走过的美丽小径。',
+          date: '2023年夏',
+          url: '/images/42.jpg',
+          thumbnail: '/images/42.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 43',
+          description: '日落时分的温柔时光。',
+          date: '2023年夏',
+          url: '/images/43.jpg',
+          thumbnail: '/images/43.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 44',
+          description: '城市街头的漫步。',
+          date: '2023年夏',
+          url: '/images/44.jpg',
+          thumbnail: '/images/44.jpg'
+        },
+        {
+          type: 'image',
+          category: 'travel',
+          title: '旅行回忆 45',
+          description: '古建筑前的合影。',
+          date: '2023年夏',
+          url: '/images/45.jpg',
+          thumbnail: '/images/45.jpg'
+        },
+
+        // 我们在一起系列 (46-60)
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 46',
+          description: '甜蜜的相伴时光，记录我们在一起的每一个瞬间。',
+          date: '2023年秋',
+          url: '/images/46.jpg',
+          thumbnail: '/images/46.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 47',
+          description: '温馨的拥抱时刻。',
+          date: '2023年秋',
+          url: '/images/47.jpg',
+          thumbnail: '/images/47.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 48',
+          description: '相视而笑的甜蜜。',
+          date: '2023年秋',
+          url: '/images/48.jpg',
+          thumbnail: '/images/48.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 49',
+          description: '手牵手的美好时光。',
+          date: '2023年秋',
+          url: '/images/49.jpg',
+          thumbnail: '/images/49.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 50',
+          description: '默契的眼神交流。',
+          date: '2023年秋',
+          url: '/images/50.jpg',
+          thumbnail: '/images/50.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 51',
+          description: '秋日里的温暖相伴。',
+          date: '2023年秋',
+          url: '/images/51.jpg',
+          thumbnail: '/images/51.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 52',
+          description: '彼此依靠的安全感。',
+          date: '2023年秋',
+          url: '/images/52.jpg',
+          thumbnail: '/images/52.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 53',
+          description: '分享快乐的时刻。',
+          date: '2023年秋',
+          url: '/images/53.jpg',
+          thumbnail: '/images/53.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 54',
+          description: '一起度过的美好时光。',
+          date: '2023年秋',
+          url: '/images/54.jpg',
+          thumbnail: '/images/54.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 55',
+          description: '特别的纪念照片。',
+          date: '2023年秋',
+          url: '/images/55.png',
+          thumbnail: '/images/55.png'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 56',
+          description: '互相照顾的温馨。',
+          date: '2023年秋',
+          url: '/images/56.jpg',
+          thumbnail: '/images/56.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 57',
+          description: '共同的兴趣爱好。',
+          date: '2023年秋',
+          url: '/images/57.jpg',
+          thumbnail: '/images/57.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 58',
+          description: '自然流露的幸福。',
+          date: '2023年秋',
+          url: '/images/58.jpg',
+          thumbnail: '/images/58.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 59',
+          description: '心有灵犀的默契。',
+          date: '2023年秋',
+          url: '/images/59.jpg',
+          thumbnail: '/images/59.jpg'
+        },
+        {
+          type: 'image',
+          category: 'together',
+          title: '在一起 60',
+          description: '无言的深情凝视。',
+          date: '2023年秋',
+          url: '/images/60.jpg',
+          thumbnail: '/images/60.jpg'
+        },
+
+        // 日常生活系列 (61-85)
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 61',
+          description: '平凡日子里的小确幸，记录我们的日常美好。',
+          date: '2023年冬',
+          url: '/images/61.jpg',
+          thumbnail: '/images/61.jpg'
         },
         {
           type: 'image',
           category: 'daily',
-          title: '一起做饭',
-          description: '疫情期间在家一起做饭的日子，简单的幸福最珍贵。',
-          date: '2020年',
-          url: '@/videos/one.jpg',
-          thumbnail: '@/videos/one.jpg'
+          title: '日常生活 62',
+          description: '一起做家务的温馨时光。',
+          date: '2023年冬',
+          url: '/images/62.jpg',
+          thumbnail: '/images/62.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 63',
+          description: '早晨的美好开始。',
+          date: '2023年冬',
+          url: '/images/63.jpg',
+          thumbnail: '/images/63.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 64',
+          description: '午后的慵懒时光。',
+          date: '2023年冬',
+          url: '/images/64.jpg',
+          thumbnail: '/images/64.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 65',
+          description: '一起看书的安静时刻。',
+          date: '2023年冬',
+          url: '/images/65.jpg',
+          thumbnail: '/images/65.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 66',
+          description: '厨房里的欢声笑语。',
+          date: '2023年冬',
+          url: '/images/66.jpg',
+          thumbnail: '/images/66.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 67',
+          description: '沙发上的拥抱时光。',
+          date: '2023年冬',
+          url: '/images/67.jpg',
+          thumbnail: '/images/67.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 68',
+          description: '窗边的温柔时光。',
+          date: '2023年冬',
+          url: '/images/68.jpg',
+          thumbnail: '/images/68.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 69',
+          description: '一起看电视的悠闲。',
+          date: '2023年冬',
+          url: '/images/69.jpg',
+          thumbnail: '/images/69.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 70',
+          description: '平凡中的不平凡。',
+          date: '2023年冬',
+          url: '/images/70.jpg',
+          thumbnail: '/images/70.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 71',
+          description: '简单生活的幸福。',
+          date: '2024年春',
+          url: '/images/71.jpg',
+          thumbnail: '/images/71.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 72',
+          description: '共同完成的小任务。',
+          date: '2024年春',
+          url: '/images/72.jpg',
+          thumbnail: '/images/72.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 73',
+          description: '阳台上的休闲时光。',
+          date: '2024年春',
+          url: '/images/73.jpg',
+          thumbnail: '/images/73.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 74',
+          description: '一起整理房间。',
+          date: '2024年春',
+          url: '/images/74.jpg',
+          thumbnail: '/images/74.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 75',
+          description: '睡前的温柔时光。',
+          date: '2024年春',
+          url: '/images/75.jpg',
+          thumbnail: '/images/75.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 76',
+          description: '周末的慢节奏生活。',
+          date: '2024年春',
+          url: '/images/76.jpg',
+          thumbnail: '/images/76.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 77',
+          description: '一起计划未来。',
+          date: '2024年春',
+          url: '/images/77.jpg',
+          thumbnail: '/images/77.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 78',
+          description: '互相分享的小秘密。',
+          date: '2024年春',
+          url: '/images/78.jpg',
+          thumbnail: '/images/78.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 79',
+          description: '一起准备晚餐。',
+          date: '2024年春',
+          url: '/images/79.jpg',
+          thumbnail: '/images/79.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 80',
+          description: '安静的相伴时光。',
+          date: '2024年春',
+          url: '/images/80.jpg',
+          thumbnail: '/images/80.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 81',
+          description: '生活中的小浪漫。',
+          date: '2024年夏',
+          url: '/images/81.jpg',
+          thumbnail: '/images/81.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 82',
+          description: '一起享受美食。',
+          date: '2024年夏',
+          url: '/images/82.jpg',
+          thumbnail: '/images/82.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 83',
+          description: '夏日里的清凉时光。',
+          date: '2024年夏',
+          url: '/images/83.jpg',
+          thumbnail: '/images/83.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 84',
+          description: '一起运动健身。',
+          date: '2024年夏',
+          url: '/images/84.jpg',
+          thumbnail: '/images/84.jpg'
+        },
+        {
+          type: 'image',
+          category: 'daily',
+          title: '日常生活 85',
+          description: '夏夜的温馨对话。',
+          date: '2024年夏',
+          url: '/images/85.jpg',
+          thumbnail: '/images/85.jpg'
+        },
+
+        // 特殊回忆系列 (86-95)
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 86',
+          description: '值得珍藏的特殊时刻，每一张都有独特的故事。',
+          date: '2024年秋',
+          url: '/images/86.jpg',
+          thumbnail: '/images/86.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 87',
+          description: '纪念日的美好庆祝。',
+          date: '2024年秋',
+          url: '/images/87.jpg',
+          thumbnail: '/images/87.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 88',
+          description: '重要场合的珍贵合影。',
+          date: '2024年秋',
+          url: '/images/88.jpg',
+          thumbnail: '/images/88.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 89',
+          description: '感动的瞬间定格。',
+          date: '2024年秋',
+          url: '/images/89.jpg',
+          thumbnail: '/images/89.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 90',
+          description: '难忘的生日庆祝。',
+          date: '2024年秋',
+          url: '/images/90.jpg',
+          thumbnail: '/images/90.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 91',
+          description: '节日里的温馨时光。',
+          date: '2024年秋',
+          url: '/images/91.jpg',
+          thumbnail: '/images/91.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 92',
+          description: '成就时刻的共同庆祝。',
+          date: '2024年秋',
+          url: '/images/92.jpg',
+          thumbnail: '/images/92.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '有趣动图 93',
+          description: '记录下来的有趣瞬间，让回忆更加生动。',
+          date: '2024年秋',
+          url: '/images/93.gif',
+          thumbnail: '/images/93.gif'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 94',
+          description: '深刻印象的特别时刻。',
+          date: '2024年秋',
+          url: '/images/94.jpg',
+          thumbnail: '/images/94.jpg'
+        },
+        {
+          type: 'image',
+          category: 'special',
+          title: '特殊回忆 95',
+          description: '最新的美好回忆，故事还在继续。',
+          date: '2024年冬',
+          url: '/images/95.jpeg',
+          thumbnail: '/images/95.jpeg'
+        },
+
+        // 视频回忆系列 - 使用视频首帧作为封面
+        {
+          type: 'video',
+          category: 'video',
+          title: '美好回忆 14',
+          description: '记录下我们美好时光的珍贵视频片段。',
+          date: '2023年',
+          url: require('@/videos/14.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '温馨时刻 15',
+          description: '甜蜜瞬间的动态记录。',
+          date: '2023年',
+          url: require('@/videos/15.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '快乐时光 16',
+          description: '欢声笑语的美好回忆。',
+          date: '2023年',
+          url: require('@/videos/16.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '浪漫瞬间 17',
+          description: '浪漫时刻的珍贵记录。',
+          date: '2023年',
+          url: require('@/videos/17.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '深情回忆 18',
+          description: '深情凝视的温柔时光。',
+          date: '2023年春',
+          url: require('@/videos/18.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '春日时光 19',
+          description: '春天里的美好时光记录。',
+          date: '2023年春',
+          url: require('@/videos/19.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '阳光日记 20',
+          description: '阳光下的幸福时刻。',
+          date: '2023年春',
+          url: require('@/videos/20.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '甜蜜记录 21',
+          description: '记录下甜蜜时光的视频日记。',
+          date: '2023年夏',
+          url: require('@/videos/21.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '夏日回忆 22',
+          description: '夏天的美好回忆片段。',
+          date: '2023年夏',
+          url: require('@/videos/22.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '特别时刻 24',
+          description: '特别的纪念时刻动态记录。',
+          date: '2023年夏',
+          url: require('@/videos/24.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '温馨日常 25',
+          description: '日常生活中的温馨时刻。',
+          date: '2023年夏',
+          url: require('@/videos/25.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '美好时光 26',
+          description: '一起度过的美好时光记录。',
+          date: '2023年夏',
+          url: require('@/videos/26.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '快乐回忆 27',
+          description: '快乐时光的珍贵记录。',
+          date: '2023年秋',
+          url: require('@/videos/27.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '秋日物语 28',
+          description: '秋天里的温柔时光。',
+          date: '2023年秋',
+          url: require('@/videos/28.mp4')
+        },
+        {
+          type: 'video',
+          category: 'video',
+          title: '爱的记录 29',
+          description: '爱情故事的动态记录。',
+          date: '2023年秋',
+          url: require('@/videos/29.mp4')
         },
         {
           type: 'video',
           category: 'special',
-          title: '十周年纪念',
-          description: '十年爱情的回顾视频，每一个画面都是满满的回忆。',
-          date: '2021年',
-          url: '@/videos/hero-video.mp4',
-          thumbnail: '@/videos/one.jpg'
+          title: '主题视频',
+          description: '我们爱情故事的主题视频，满载着所有美好回忆。',
+          date: '2024年',
+          url: require('@/videos/hero-video.mp4')
         }
-        // 你可以继续添加更多的照片和视频
       ]
     }
   },
@@ -168,12 +925,29 @@ export default {
       this.currentItem = item
       this.currentIndex = index
       this.showModal = true
+      this.videoError = false
       document.body.style.overflow = 'hidden'
     },
     closeModal() {
       this.showModal = false
       this.currentItem = null
+      this.videoError = false
       document.body.style.overflow = 'auto'
+    },
+    handleVideoError(event) {
+      console.error('视频加载失败:', event)
+      this.videoError = true
+    },
+    handleVideoLoaded() {
+      console.log('视频加载成功')
+      this.videoError = false
+    },
+    setVideoTime(event) {
+      // 设置视频时间为第1秒，以获取更好的首帧预览
+      const video = event.target
+      if (video.duration > 1) {
+        video.currentTime = 1
+      }
     },
     prevItem() {
       const filteredItems = this.filteredItems
@@ -299,14 +1073,20 @@ export default {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
-.gallery-image img {
+.gallery-image img,
+.gallery-image .video-thumbnail {
   width: 100%;
   height: 250px;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.gallery-image:hover img {
+.video-thumbnail {
+  pointer-events: none; /* 防止在缩略图状态下播放 */
+}
+
+.gallery-image:hover img,
+.gallery-image:hover .video-thumbnail {
   transform: scale(1.1);
 }
 
@@ -437,6 +1217,29 @@ export default {
   max-height: 70vh;
   object-fit: contain;
   border-radius: 10px;
+}
+
+.video-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.video-error p:first-child {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.video-error p:last-child {
+  font-size: 1rem;
+  opacity: 0.8;
 }
 
 .modal-info {

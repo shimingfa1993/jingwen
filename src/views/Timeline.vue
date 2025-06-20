@@ -22,7 +22,7 @@
               <div class="timeline-date">{{ item.date }}</div>
               <h3 class="timeline-title">{{ item.title }}</h3>
               <p class="timeline-description">{{ item.description }}</p>
-              <div v-if="item.image" class="timeline-image">
+              <div  class="timeline-image">
                 <img :src="item.image" :alt="item.title" />
               </div>
             </div>
@@ -43,67 +43,88 @@ export default {
     return {
       timelineItems: [
         {
-          date: '2011年春天',
+          date: '2011年夏天',
           title: '我们的相遇',
-          description: '那个春暖花开的日子，我们在校园里第一次相遇。你的笑容如春光般温暖，从那一刻起，我就知道你是那个特别的人。',
+          description: '那个春暖花开的日子，我们在公园里第一次相遇。你的笑容如春光般温暖，从那一刻起，我就知道你是那个特别的人。',
           icon: '💕',
-          image: '@/videos/one.jpg'
+          image: '/images/1.png'
         },
         {
-          date: '2011年夏天',
+          date: '2012年春天',
           title: '确定关系',
           description: '经过几个月的相处，我们正式确定了恋爱关系。那个夏日的黄昏，我鼓起勇气对你表白，你的一声"好"让我的世界瞬间明亮。',
           icon: '❤️',
-          image: '@/videos/one.jpg'
+          image: '/images/2.png'
         },
         {
           date: '2012年',
           title: '第一次旅行',
           description: '我们的第一次双人旅行，虽然预算有限，但那份快乐是无价的。海边的夕阳，山间的清晨，每一个瞬间都成为了珍贵的回忆。',
           icon: '🚗',
-          image: '@/videos/one.jpg'
+          image: '/images/3.png'
         },
         {
-          date: '2014年',
-          title: '大学毕业',
-          description: '我们一起度过了大学时光，一起奋斗，一起成长。毕业时的不舍，让我们更加珍惜彼此，也更加坚定了一起走下去的决心。',
+          date: '2013年',
+          title: '步入大学',
+          description: '那几年，我的青春藏在了去你城市的车票里，每一张都是我爱你的证据，异地的风吹不散我对你的思念，每次跨越山海见你，都是我最幸福的奔赴',
           icon: '🎓',
-          image: '@/videos/one.jpg'
+          image: '/images/4.png'
         },
         {
           date: '2016年',
+          title: '我的毕业',
+          description: '那些年你在廊坊，我在北京，信任动摇过心，却未动摇爱，余生请继续让我宠你。',
+          icon: '🎓',
+          image: '/images/5.png'
+        },
+        {
+          date: '2017年',
           title: '开始工作',
-          description: '步入职场的我们，面临着新的挑战。虽然工作忙碌，但我们依然坚持着相互支持，一起为美好的未来努力奋斗。',
+          description: '步入职场的我，面临着新的挑战。虽然工作忙碌，但我们依然坚持着相互支持，一起为美好的未来努力奋斗。',
           icon: '💼',
-          image: '@/videos/one.jpg'
+          image: '/images/6.png'
         },
         {
           date: '2018年',
           title: '五周年纪念',
           description: '相爱五年，我们已经从青涩的学生变成了成熟的大人。这一年我们学会了更多的包容和理解，爱情也变得更加深刻。',
           icon: '🎉',
-          image: '@/videos/one.jpg'
+          image: '/images/7.png'
+        },
+        {
+          date: '2019年',
+          title: '步步高升',
+          description: '你在书海泛舟，我在人海沉浮，白日为梦奔忙，夜晚为你赶路。星光不问赶路人，我愿意等待。',
+          icon: '🎉',
+          image: '/images/8.png'
         },
         {
           date: '2020年',
           title: '疫情期间',
           description: '特殊的一年让我们更加珍惜相聚的时光。居家的日子里，我们一起做饭、看电影、分享彼此的想法，发现爱情的另一种美好。',
           icon: '🏠',
-          image: '@/videos/one.jpg'
+          image: '/images/9.png'
         },
         {
-          date: '2022年',
-          title: '十周年里程碑',
+          date: '2021年',
+          title: '考公上岸',
           description: '十年的爱情长跑，我们经历了太多的风雨和彩虹。感谢时光见证了我们的成长，也见证了这份不变的真心。',
           icon: '💖',
-          image: '@/videos/one.jpg'
+          image: '/images/10.png'
         },
         {
-          date: '2024年',
+          date: '2022-2044年',
+          title: '梅花',
+          description: '你是我心底最深的佩服，是我愿用生命去守护的人。生日这天，愿你笑得更甜，梦得更远',
+          icon: '💖',
+          image: '/images/11.png'
+        },
+        {
+          date: '2025年',
           title: '十三年的今天',
           description: '如今的我们，依然像初恋时那样深爱着彼此。这个特别的网站，是我想对你说的千言万语的总结：愿我们的爱情故事永远没有终点。',
           icon: '🎂',
-          image: '@/videos/one.jpg'
+          image: '/images/12.jpg'
         }
       ]
     }

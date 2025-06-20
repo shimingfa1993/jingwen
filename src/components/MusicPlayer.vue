@@ -1,5 +1,5 @@
 <template>
-  <div class="music-player" :class="{ 'minimized': isMinimized }">
+  <div v-if="isVisible" class="music-player" :class="{ 'minimized': isMinimized }">
     <div class="player-container">
       <!-- Album Art -->
       <div class="album-art" @click="toggleMinimize">
@@ -95,6 +95,11 @@ export default {
   },
   mounted() {
     this.initializePlayer()
+    // 添加键盘快捷键重新显示音乐播放器 (Ctrl+M)
+    document.addEventListener('keydown', this.handleKeydown)
+  },
+  beforeDestroy() {
+    document.removeEventListener('keydown', this.handleKeydown)
   },
   methods: {
     initializePlayer() {
@@ -158,6 +163,14 @@ export default {
       this.isVisible = false
       if (this.isPlaying) {
         this.togglePlay()
+      }
+    },
+    handleKeydown(event) {
+      // Ctrl+M 重新显示音乐播放器
+      if (event.ctrlKey && event.key === 'm') {
+        event.preventDefault()
+        this.isVisible = true
+        this.isMinimized = false
       }
     }
   }
