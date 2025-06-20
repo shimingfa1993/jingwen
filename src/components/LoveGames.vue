@@ -15,34 +15,57 @@
         </div>
       </div>
 
-      <!-- 游戏1: 数字转盘 -->
+      <!-- 游戏1: 数字闪烁 -->
       <div v-if="currentGame === 1" class="game-content">
         <h3>🎯 第一关：幸运数字</h3>
-        <p>点击停止转盘，选中我们在一起的日期：31号！</p>
-        <div class="number-wheel">
-          <div class="wheel" :class="{spinning: isSpinning}">
-            <div class="number" :class="{changing: isSpinning}">{{ currentNumber }}</div>
+        <p>仔细看数字闪烁，当看到66时点击停止！</p>
+        <div class="number-flash">
+          <div class="flash-container" :class="{active: isFlashing}">
+            <div class="number" 
+                 :class="{
+                   blurry: isBlurry && !completedGames.includes(1),
+                   clear: (!isBlurry && isFlashing) || completedGames.includes(1),
+                   hidden: !isFlashing && !completedGames.includes(1)
+                 }"
+                 :style="{
+                   opacity: completedGames.includes(1) ? 1 : numberOpacity,
+                   transform: completedGames.includes(1) ? 'scale(1)' : `scale(${numberScale}) translateY(${numberShake}px)`
+                 }">
+                             {{ completedGames.includes(1) ? 66 : currentNumber }}
+            </div>
           </div>
-          <button @click="stopWheel" :disabled="!isSpinning" class="game-btn">停止</button>
-          <div v-if="gameAttempts[1] > 0" class="attempt-hint">
+          <button @click="isFlashing ? stopFlash() : startNumberFlash()" 
+                  class="game-btn"
+                  :disabled="completedGames.includes(1)">
+            {{ completedGames.includes(1) ? '已完成' : (isFlashing ? '停止' : '开始') }}
+          </button>
+          <div v-if="completedGames.includes(1)" class="success-hint">
+            ✅ 游戏已完成！您成功找到了66这个幸运数字！
+          </div>
+          <div v-else-if="gameAttempts[1] > 0" class="attempt-hint">
             尝试次数: {{ gameAttempts[1] }}/{{ getMaxAttempts(1) }}
+          </div>
+          <div v-if="!completedGames.includes(1)" class="game-hint">
+            💡 提示：数字会在清晰和模糊之间变化，抓住时机！
           </div>
         </div>
       </div>
 
-      <!-- 游戏2: 爱心拼图 -->
+      <!-- 游戏2: 日期拼图 -->
       <div v-if="currentGame === 2" class="game-content">
-        <h3>💝 第二关：爱心拼图</h3>
-        <p>将爱心碎片拖拽到正确位置，拼成完整的爱心！</p>
+        <h3>💝 第二关：日期拼图</h3>
+        <p>将数字拖拽到正确位置，拼成我们的纪念日期：0528！</p>
         <div class="puzzle-area">
           <div class="puzzle-target">
-            <div v-for="i in 4" :key="i" 
+            <div v-for="(targetNum, index) in puzzleTargetNumbers" :key="index" 
                  class="puzzle-slot" 
-                 :data-slot="i"
+                 :data-slot="index"
                  @dragover.prevent
-                 @drop="dropPuzzlePiece($event, i)">
-              <div v-if="puzzlePieces[i-1].placed" class="puzzle-piece placed" :data-piece="i">{{ i }}</div>
-              <div v-else class="slot-hint">{{ i }}</div>
+                 @drop="dropPuzzlePiece($event, index)">
+              <div v-if="puzzlePieces[index].placed" class="puzzle-piece placed" :data-piece="puzzlePieces[index].number">
+                {{ puzzlePieces[index].number }}
+              </div>
+              <div v-else class="slot-hint">{{ targetNum }}</div>
             </div>
           </div>
           <div class="puzzle-pieces">
@@ -59,7 +82,7 @@
             尝试次数: {{ gameAttempts[2] }}/{{ getMaxAttempts(2) }}
           </div>
           <div class="puzzle-hint">
-            提示：将数字拖拽到对应的位置（1→1, 2→2, 3→3, 4→4）
+            提示：将数字拖拽到对应的位置（0→第1位, 5→第2位, 2→第3位, 8→第4位）
           </div>
         </div>
       </div>
@@ -91,7 +114,7 @@
       <!-- 游戏4: 日期记忆 -->
       <div v-if="currentGame === 4" class="game-content">
         <h3>📅 第四关：重要日期</h3>
-        <p>选择我们第一次见面的年份！</p>
+        <p>成为文哥忠诚的小发子的年份！</p>
         <div class="date-game">
           <div class="date-options">
             <button v-for="year in [2010, 2011, 2012, 2013]" :key="year" 
@@ -158,9 +181,13 @@
                     :style="{backgroundColor: color}"
                     :class="{active: activeColor === index}"
                     @click="clickColor(index)"
-                    :disabled="!gameStarted"></button>
+                    :disabled="!gameStarted || sequenceShowing"></button>
           </div>
           <button v-if="!sequenceShowing && !gameStarted" @click="startColorGame" class="game-btn">开始</button>
+          <div v-if="sequenceShowing" class="status-hint">请记住颜色闪烁的顺序...</div>
+          <div v-if="gameStarted && !sequenceShowing" class="status-hint">
+            现在请按刚才的顺序点击颜色！({{ playerSequence.length }}/{{ colorSequence.length }})
+          </div>
         </div>
       </div>
 
@@ -186,25 +213,47 @@
       <!-- 游戏9: 找茬游戏 -->
       <div v-if="currentGame === 9" class="game-content">
         <h3>🔍 第九关：火眼金睛</h3>
-        <p>找出两幅图中的3个不同之处！</p>
+        <p>找出两张图中的3个不同之处！点击红圈找出不同点</p>
         <div class="spot-difference-game">
           <div class="image-pair">
-            <div class="game-image">
+            <div class="game-image left-image">
+              <!-- 左图的内容 -->
+              <div class="scene-content">
+                <div class="sun">☀️</div>
+                <div class="tree">🌲</div>
+                <div class="house">🏠</div>
+                <div class="flower">🌸</div>
+                <div class="bird">🐦</div>
+                <div class="cloud">☁️</div>
+              </div>
+              <!-- 不同点标记 -->
               <div v-for="diff in differences" :key="'left-'+diff.id" 
-                   class="difference-spot left" 
+                   class="difference-spot" 
                    :style="{top: diff.y + 'px', left: diff.x + 'px'}"
                    :class="{found: diff.found}"
                    @click="foundDifference(diff.id)"></div>
-              图片1
             </div>
-            <div class="game-image">
+            <div class="game-image right-image">
+              <!-- 右图的内容（有不同） -->
+              <div class="scene-content">
+                <div class="sun">🌙</div><!-- 不同1: 太阳vs月亮 -->
+                <div class="tree">🌲</div>
+                <div class="house">🏠</div>
+                <div class="flower">🌸</div>
+                <div class="bird" style="display: none;">🐦</div><!-- 不同2: 鸟消失了 -->
+                <div class="cloud">☁️</div>
+                <div class="star">⭐</div><!-- 不同3: 多了一颗星星 -->
+              </div>
+              <!-- 不同点标记 -->
               <div v-for="diff in differences" :key="'right-'+diff.id" 
-                   class="difference-spot right" 
-                   :style="{top: diff.y + 'px', left: diff.x + 20 + 'px'}"
+                   class="difference-spot" 
+                   :style="{top: diff.y + 'px', left: diff.x + 'px'}"
                    :class="{found: diff.found}"
                    @click="foundDifference(diff.id)"></div>
-              图片2
             </div>
+          </div>
+          <div class="difference-progress">
+            已找到 {{ foundDifferencesCount }}/3 个不同点
           </div>
         </div>
       </div>
@@ -212,7 +261,10 @@
       <!-- 游戏10: 密码锁 -->
       <div v-if="currentGame === 10" class="game-content">
         <h3>🔐 第十关：爱的密码</h3>
-        <p>输入我们第一次牵手的月份（两位数字）！</p>
+        <p>输入我想对静文说的得数字（三位数字）！</p>
+        <div v-if="!completedGames.includes(10)" class="password-debug">
+          当前输入：{{ passwordInput.join('') || '无' }}
+        </div>
         <div class="password-game">
           <div class="password-display">
             <span v-for="(digit, index) in passwordInput" :key="index" class="password-digit">
@@ -221,12 +273,19 @@
           </div>
           <div class="number-pad">
             <button v-for="num in [1,2,3,4,5,6,7,8,9,0]" :key="num" 
-                    class="number-btn" @click="inputPassword(num)">
+                    class="number-btn" 
+                    :disabled="completedGames.includes(10)"
+                    @click="inputPassword(num)">
               {{ num }}
             </button>
-            <button class="clear-btn" @click="clearPassword">清除</button>
+            <button class="clear-btn" 
+                    :disabled="completedGames.includes(10)"
+                    @click="clearPassword">清除</button>
           </div>
-          <div v-if="gameAttempts[10] > 0" class="attempt-hint">
+          <div v-if="completedGames.includes(10)" class="success-hint">
+            ✅ 游戏已完成！密码正确：520！
+          </div>
+          <div v-else-if="gameAttempts[10] > 0" class="attempt-hint">
             尝试次数: {{ gameAttempts[10] }}/{{ getMaxAttempts(10) }}
           </div>
         </div>
@@ -246,32 +305,44 @@
       <!-- 游戏12: 星座连线 -->
       <div v-if="currentGame === 12" class="game-content">
         <h3>⭐ 第十二关：星空爱语</h3>
-        <p>连接星星，组成爱心形状！</p>
+        <p>点击所有星星，让它们发光组成爱心形状！</p>
         <div class="constellation-game">
-          <svg class="star-canvas" @mousedown="startStarConnection" @mousemove="drawStarLine" @mouseup="endStarConnection">
+          <svg class="star-canvas" width="300" height="200">
             <circle v-for="(star, index) in stars" :key="index" 
-                    :cx="star.x" :cy="star.y" r="8" 
+                    :cx="star.x" :cy="star.y" r="12" 
                     class="star" 
                     :class="{connected: star.connected}"
+                    :fill="star.connected ? '#ffd700' : '#ddd'"
+                    stroke="#ff69b4" 
+                    stroke-width="2"
+                    style="cursor: pointer;"
                     @click="clickStar(index)"></circle>
-            <path v-if="currentPath" :d="currentPath" stroke="#ff69b4" stroke-width="2" fill="none"></path>
             <path v-for="(line, index) in starLines" :key="index" 
                   :d="line" stroke="#ff69b4" stroke-width="2" fill="none"></path>
           </svg>
+          <div class="star-progress">{{ connectedStarsCount }}/{{ stars.length }} 颗星星已点亮</div>
         </div>
       </div>
 
       <!-- 游戏13: 最终告白 -->
       <div v-if="currentGame === 13" class="game-content">
         <h3>💖 第十三关：最终告白</h3>
-        <p>输入那句最重要的话："静文我爱你"</p>
+        <p>这份礼物满意吗？</p>
         <div class="confession-game">
           <input v-model="confessionInput" 
                  class="confession-input" 
-                 placeholder="请输入..." 
+                 placeholder="请输入您的想法..." 
+                 :disabled="completedGames.includes(13)"
                  @keyup.enter="checkConfession">
-          <button @click="checkConfession" class="game-btn">确认</button>
-          <div v-if="gameAttempts[13] > 0" class="attempt-hint">
+          <button @click="checkConfession" 
+                  class="game-btn"
+                  :disabled="completedGames.includes(13)">
+            确认
+          </button>
+          <div v-if="completedGames.includes(13)" class="success-hint">
+            ✅ 谢谢您的回答！礼物已送达！
+          </div>
+          <div v-else-if="gameAttempts[13] > 0" class="attempt-hint">
             尝试次数: {{ gameAttempts[13] }}/{{ getMaxAttempts(13) }}
           </div>
         </div>
@@ -282,7 +353,44 @@
         <h2>🎉 恭喜！所有游戏完成！🎉</h2>
         <p>静文，这十三个游戏代表我们十三年的美好时光</p>
         <p>每一关都充满了我对你的爱意</p>
-        <p>愿我们的爱情故事永远精彩下去！</p>
+        <p>这份特别的礼物，希望能给你带来快乐！</p>
+        
+        <!-- 转账功能 -->
+        <div class="transfer-section">
+          <h3>💰 特别的小惊喜</h3>
+          <p>作为通关奖励，给你准备了一个小红包！</p>
+          <div class="transfer-amount">¥2400</div>
+          <div class="transfer-buttons">
+            <button @click="openAlipayTransfer" class="transfer-btn alipay-btn">
+              💙 支付宝转账
+            </button>
+            <button @click="showTransferInfo" class="transfer-btn info-btn">
+              📋 查看转账信息
+            </button>
+          </div>
+          
+          <!-- 转账信息显示 -->
+          <div v-if="showTransferDetails" class="transfer-details">
+            <h4>💡 转账信息</h4>
+            <div class="transfer-info">
+              <p><strong>收款人：</strong>刘静文</p>
+              <p><strong>金额：</strong>¥2400.00</p>
+              <p><strong>备注：</strong>十三年爱情游戏通关奖励💕</p>
+            </div>
+            <div class="transfer-actions">
+              <button @click="copyTransferInfo" class="transfer-btn copy-btn">
+                📋 复制转账信息
+              </button>
+              <div class="transfer-notes">
+                <p>💡 转账步骤：</p>
+                <p>1. 点击"支付宝转账"按钮（手机端）</p>
+                <p>2. 或复制信息手动转账</p>
+                <p>3. 备注：十三年爱情游戏通关奖励💕</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="celebration-hearts">
           <span v-for="i in 13" :key="i" class="floating-heart">💖</span>
         </div>
@@ -300,6 +408,142 @@
   </div>
 </template>
 
+<style scoped>
+.game-image {
+  position: relative;
+  width: 200px;
+  height: 150px;
+  border: 2px solid #ff69b4;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+  margin: 0 10px;
+  overflow: hidden;
+}
+
+.scene-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-content > div {
+  position: absolute;
+  font-size: 20px;
+}
+
+.sun, .moon { top: 10px; left: 20px; }
+.tree { top: 50px; left: 30px; }
+.house { top: 80px; left: 80px; }
+.flower { top: 90px; left: 20px; }
+.bird { top: 40px; left: 100px; }
+.cloud { top: 15px; left: 120px; }
+.star { top: 25px; left: 150px; }
+
+.difference-spot {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  border: 3px solid #ff0000;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.2);
+  cursor: pointer;
+  animation: pulse 1.5s infinite;
+}
+
+.difference-spot.found {
+  background: rgba(0, 255, 0, 0.3);
+  border-color: #00ff00;
+  animation: none;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+.image-pair {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.difference-progress {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ff69b4;
+  margin-top: 15px;
+}
+
+.spot-difference-game {
+  padding: 20px;
+}
+
+/* 第一关数字闪烁游戏样式 */
+.number-flash {
+  text-align: center;
+  padding: 20px;
+}
+
+.flash-container {
+  width: 150px;
+  height: 150px;
+  margin: 20px auto;
+  border: 3px solid #ff69b4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, #fff 0%, #ffe6f0 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.flash-container.active {
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+  animation: glow 2s infinite;
+}
+
+.number {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ff1493;
+  transition: all 0.3s ease;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.number.blurry {
+  filter: blur(8px);
+  text-shadow: 0 0 10px #ff1493;
+}
+
+.number.clear {
+  filter: blur(0px);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.number.hidden {
+  opacity: 0;
+}
+
+.game-hint {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 105, 180, 0.1);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 105, 180, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(255, 105, 180, 0.8); }
+}
+</style>
+
 <script>
 export default {
   name: 'LoveGames',
@@ -310,19 +554,25 @@ export default {
       completedGames: [],
       gameAttempts: {}, // 记录每个游戏的尝试次数
       
-      // 游戏1: 数字转盘
+      // 游戏1: 数字闪烁
       currentNumber: 0,
-      isSpinning: false,
-      wheelInterval: null,
+      isFlashing: false,
+      isBlurry: false,
+      numberOpacity: 1,
+      numberScale: 1,
+      numberShake: 0,
+      flashInterval: null,
+      effectInterval: null,
       
-      // 游戏2: 爱心拼图
+      // 游戏2: 日期拼图
       puzzlePieces: [
-        {placed: false},
-        {placed: false},
-        {placed: false},
-        {placed: false}
+        {placed: false, number: null},
+        {placed: false, number: null},
+        {placed: false, number: null},
+        {placed: false, number: null}
       ],
-      shuffledPieces: [4, 2, 1, 3],
+      puzzleTargetNumbers: [0, 5, 2, 8], // 目标数字顺序
+      shuffledPieces: [8, 2, 0, 5], // 随机打乱的数字
       
       // 游戏3: 情话配对
       loveQuotes: [
@@ -366,14 +616,14 @@ export default {
       
       // 游戏9: 找茬
       differences: [
-        {id: 1, x: 50, y: 50, found: false},
-        {id: 2, x: 100, y: 80, found: false},
-        {id: 3, x: 75, y: 120, found: false}
+        {id: 1, x: 20, y: 20, found: false, description: "太阳变月亮"},
+        {id: 2, x: 100, y: 60, found: false, description: "小鸟消失了"},
+        {id: 3, x: 150, y: 30, found: false, description: "多了一颗星星"}
       ],
       
       // 游戏10: 密码锁
-      passwordInput: ['', ''],
-      correctPassword: ['0', '8'], // 8月
+      passwordInput: ['', '', ''],
+      correctPassword: ['5', '2', '0'], // 我爱你
       
       // 游戏11: 音乐节拍
       beatCount: 0,
@@ -392,10 +642,18 @@ export default {
       starLines: [],
       currentPath: '',
       connectingStars: false,
+      startPoint: {x: 0, y: 0},
       
       // 游戏13: 最终告白
-      confessionInput: '',
-      correctConfession: '静文我爱你'
+          confessionInput: '',
+    correctConfession: '静文我爱你',
+    
+    // 转账相关
+    showTransferDetails: false,
+    transferAmount: 2400,
+    recipientName: '刘静文',
+    recipientAccount: '请填入女友的支付宝账号', // 需要填入实际的支付宝账号
+    recipientAlipayId: '' // 支付宝用户ID
     }
   },
   computed: {
@@ -406,7 +664,18 @@ export default {
       return this.completedGames.length === 13
     },
     availablePuzzlePieces() {
-      return this.shuffledPieces.filter(piece => !this.puzzlePieces[piece-1].placed)
+      return this.shuffledPieces.filter(piece => {
+        // 检查这个数字是否还没有被放置
+        return !this.puzzlePieces.some(p => p.placed && p.number === piece)
+      })
+    },
+    
+    connectedStarsCount() {
+      return this.stars.filter(star => star.connected).length
+    },
+    
+    foundDifferencesCount() {
+      return this.differences.filter(diff => diff.found).length
     }
   },
   mounted() {
@@ -436,7 +705,15 @@ export default {
     },
     show() {
       this.isVisible = true
-      this.startNumberWheel()
+      // 重置第一关状态，不自动开始
+      this.isFlashing = false
+      this.isBlurry = false
+      this.numberOpacity = 1
+      this.numberScale = 1
+      this.numberShake = 0
+      this.currentNumber = 0
+      if (this.flashInterval) clearInterval(this.flashInterval)
+      if (this.effectInterval) clearInterval(this.effectInterval)
     },
     
     closeGames() {
@@ -458,40 +735,97 @@ export default {
       this.shuffleTimelineEvents()
     },
     
-    // 游戏1: 数字转盘
-    startNumberWheel() {
+    // 游戏1: 数字闪烁
+    startNumberFlash() {
       if (this.currentGame === 1 && !this.completedGames.includes(1)) {
-        this.isSpinning = true
-        this.wheelInterval = setInterval(() => {
-          this.currentNumber = Math.floor(Math.random() * 32)
-        }, 80) // 调整间隔时间，让数字变化清晰可见
+        this.isFlashing = true
+        this.currentNumber = 0
+        
+        const currentAttempts = this.getGameAttempts(1)
+        let targetNumbers = []
+        
+        // 根据尝试次数调整数字出现策略
+        if (currentAttempts === 0) {
+          // 第一次：66出现在6-10秒之间
+          targetNumbers = [66, 15, 22, 8, 66, 18, 66, 25, 12]
+        } else if (currentAttempts === 1) {
+          // 第二次：66出现更频繁
+          targetNumbers = [66, 12, 66, 7, 66, 20, 66, 66, 16]
+        } else {
+          // 第三次：66出现非常频繁，几乎每隔一个数字就是66
+          targetNumbers = [66, 5, 66, 9, 66, 13, 66, 2, 66, 66]
+        }
+        
+        let numberIndex = 0
+        
+        // 数字变化间隔
+        this.flashInterval = setInterval(() => {
+          if (currentAttempts >= 2) {
+            // 第三次尝试时，大幅增加66的出现概率
+            this.currentNumber = Math.random() > 0.3 ? 66 : Math.floor(Math.random() * 99) + 1
+          } else {
+            // 前两次使用预设的数字序列
+            this.currentNumber = targetNumbers[numberIndex % targetNumbers.length]
+            numberIndex++
+          }
+        }, 800) // 稍微放慢速度，让用户更容易看清
+        
+        // 视觉效果间隔
+        this.effectInterval = setInterval(() => {
+          // 第三次尝试时减少视觉干扰
+          if (currentAttempts >= 2) {
+            this.isBlurry = Math.random() > 0.7 // 减少模糊
+            this.numberOpacity = 0.7 + Math.random() * 0.3 // 提高最低透明度
+            this.numberScale = 0.9 + Math.random() * 0.2 // 减少缩放幅度
+            this.numberShake = (Math.random() - 0.5) * 4 // 减少抖动
+          } else {
+            this.isBlurry = Math.random() > 0.5
+            this.numberOpacity = 0.4 + Math.random() * 0.6
+            this.numberScale = 0.8 + Math.random() * 0.4
+            this.numberShake = (Math.random() - 0.5) * 8
+          }
+        }, 300) // 稍微放慢效果变化
       }
     },
     
-    stopWheel() {
-      this.isSpinning = false
-      clearInterval(this.wheelInterval)
+    stopFlash() {
+      this.isFlashing = false
+      clearInterval(this.flashInterval)
+      clearInterval(this.effectInterval)
       
-      // 检查是否应该自动通过
-      if (this.shouldAutoPass(1)) {
-        this.currentNumber = 31 // 自动设置为正确答案
-        setTimeout(() => {
-          this.completeGame(1, "太棒了！31号正是我们在一起的日子！💕（系统自动帮助通过）")
-        }, 500)
-      } else if (this.currentNumber === 31) {
-        this.completeGame(1, "太棒了！31号正是我们在一起的日子！💕")
+      // 重置视觉效果
+      this.isBlurry = false
+      this.numberOpacity = 1
+      this.numberScale = 1
+      this.numberShake = 0
+      
+      const currentAttempts = this.getGameAttempts(1)
+      
+      if (this.currentNumber === 66) {
+        this.completeGame(1, "太棒了！66是我们的幸运数字！💕")
       } else {
         this.incrementAttempts(1)
+        
+        let encourageMessage = ""
+        if (currentAttempts === 0) {
+          encourageMessage = `数字是${this.currentNumber}，不是66哦！别着急，再试一次～`
+        } else if (currentAttempts === 1) {
+          encourageMessage = `数字是${this.currentNumber}，差一点点！再试一次～`
+        } else {
+          encourageMessage = `数字是${this.currentNumber}，最后一次机会！仔细看～`
+        }
+        
+        alert(encourageMessage)
         setTimeout(() => {
-          this.startNumberWheel()
-        }, 1000)
+          this.startNumberFlash()
+        }, 1500)
       }
     },
     
     // 游戏2: 拼图相关方法
     shufflePuzzlePieces() {
       // 重新洗牌，确保拼图块不是按顺序排列
-      this.shuffledPieces = [1, 2, 3, 4].sort(() => Math.random() - 0.5)
+      this.shuffledPieces = [0, 5, 2, 8].sort(() => Math.random() - 0.5)
     },
     
     startPuzzleDrag(event) {
@@ -505,27 +839,33 @@ export default {
     dropPuzzlePiece(event, slotIndex) {
       event.preventDefault()
       const pieceNumber = parseInt(event.dataTransfer.getData('text/plain'))
+      const targetNumber = this.puzzleTargetNumbers[slotIndex]
       
       // 检查是否拖拽到正确位置
-      if (pieceNumber === slotIndex) {
-        this.puzzlePieces[slotIndex - 1].placed = true
+      if (pieceNumber === targetNumber) {
+        this.puzzlePieces[slotIndex].placed = true
+        this.puzzlePieces[slotIndex].number = pieceNumber
         
         // 检查是否完成拼图
         if (this.puzzlePieces.every(piece => piece.placed)) {
-          this.completeGame(2, "太棒了！爱心拼图完成，就像我们的爱情一样完整！💕")
+          this.completeGame(2, "太棒了！0528日期拼图完成，我们的纪念日！💕")
         }
       } else {
         // 拖拽到错误位置
         this.incrementAttempts(2)
         if (this.shouldAutoPass(2)) {
           // 自动完成拼图
-          this.puzzlePieces.forEach(piece => piece.placed = true)
+          this.puzzlePieces.forEach((piece, index) => {
+            piece.placed = true
+            piece.number = this.puzzleTargetNumbers[index]
+          })
           setTimeout(() => {
-            this.completeGame(2, "太棒了！爱心拼图完成，就像我们的爱情一样完整！💕（系统自动帮助通过）")
+            this.completeGame(2, "太棒了！0528日期拼图完成，我们的纪念日！💕（系统自动帮助通过）")
           }, 500)
         } else {
           // 显示错误提示
-          alert(`数字${pieceNumber}应该放到位置${pieceNumber}哦！再试试看～`)
+          const correctPosition = this.puzzleTargetNumbers.indexOf(pieceNumber) + 1
+          alert(`数字${pieceNumber}应该放到第${correctPosition}位哦！再试试看～`)
         }
       }
     },
@@ -594,7 +934,7 @@ export default {
     
     // 游戏5: 记忆卡片
     initMemoryCards() {
-      const emojis = ['💕', '💖', '💝', '💗', '💕', '💖', '💝', '💗']
+      const emojis = ['💕', '🌹', '💍', '🎵', '💕', '🌹', '💍', '🎵']
       this.memoryCards = emojis.map(emoji => ({
         emoji,
         flipped: false,
@@ -687,7 +1027,13 @@ export default {
         if (JSON.stringify(this.playerSequence) === JSON.stringify(this.colorSequence)) {
           this.completeGame(7, "颜色记忆完美！你的记忆力真棒！💕")
         } else {
+          // 失败时重置游戏状态，让用户重新开始
+          alert("顺序不对哦，再试试看！")
+          this.gameStarted = false
+          this.sequenceShowing = false
           this.playerSequence = []
+          this.colorSequence = []
+          this.activeColor = -1
         }
       }
     },
@@ -722,35 +1068,60 @@ export default {
       const diff = this.differences.find(d => d.id === diffId)
       if (diff && !diff.found) {
         diff.found = true
+        alert(`找到了！${diff.description} ✅`)
+        
         if (this.differences.every(d => d.found)) {
-          this.completeGame(9, "火眼金睛！所有不同之处都被你找到了！💕")
+          setTimeout(() => {
+            this.completeGame(9, "火眼金睛！所有不同之处都被你找到了！💕")
+          }, 500)
         }
       }
     },
     
     // 游戏10: 密码锁
     inputPassword(num) {
-      if (this.passwordInput[0] === '') {
-        this.passwordInput[0] = num.toString()
-      } else if (this.passwordInput[1] === '') {
-        this.passwordInput[1] = num.toString()
-        this.checkPassword()
+      // 防止游戏已完成后继续输入
+      if (this.completedGames.includes(10)) {
+        return
+      }
+      
+      // 找到第一个空位并创建新数组确保响应性
+      const newPassword = [...this.passwordInput]
+      for (let i = 0; i < newPassword.length; i++) {
+        if (newPassword[i] === '') {
+          newPassword[i] = num.toString()
+          this.passwordInput = newPassword
+          
+          // 如果是最后一位，延迟检查密码让用户看到输入
+          if (i === newPassword.length - 1) {
+            setTimeout(() => {
+              this.checkPassword()
+            }, 500)
+          }
+          break
+        }
       }
     },
     
     clearPassword() {
-      this.passwordInput = ['', '']
+      // 防止游戏已完成后清除
+      if (this.completedGames.includes(10)) {
+        return
+      }
+      
+      // 创建新数组确保响应性
+      this.passwordInput = ['', '', '']
     },
     
     checkPassword() {
       if (JSON.stringify(this.passwordInput) === JSON.stringify(this.correctPassword)) {
-        this.completeGame(10, "密码正确！8月，我们第一次牵手的美好时光！💕")
+        this.completeGame(10, "密码正确！520，我想静文念得数字！💕")
       } else {
         this.incrementAttempts(10)
         if (this.shouldAutoPass(10)) {
-          this.passwordInput = ['0', '8']
+          this.passwordInput = ['5', '2', '0']
           setTimeout(() => {
-            this.completeGame(10, "密码正确！8月，我们第一次牵手的美好时光！💕（系统自动帮助通过）")
+            this.completeGame(10, "密码正确！520，我想静文念得数字！💕（系统自动帮助通过）")
           }, 500)
         } else {
           setTimeout(() => {
@@ -788,23 +1159,98 @@ export default {
     // 游戏12: 星座连线
     clickStar(index) {
       this.stars[index].connected = !this.stars[index].connected
+      
       if (this.stars.every(star => star.connected)) {
-        this.completeGame(12, "星星连线成功！组成了爱的形状！💕")
+        // 当所有星星都点亮后，画出爱心连线
+        this.drawHeartLines()
+        setTimeout(() => {
+          this.completeGame(12, "星星连线成功！组成了爱的形状！💕")
+        }, 1000)
       }
+    },
+    
+    drawHeartLines() {
+      // 画出爱心形状的连线
+      const heartPaths = [
+        // 左边心形
+        `M ${this.stars[0].x} ${this.stars[0].y} Q ${this.stars[1].x-10} ${this.stars[1].y-10} ${this.stars[3].x} ${this.stars[3].y}`,
+        // 右边心形
+        `M ${this.stars[2].x} ${this.stars[2].y} Q ${this.stars[1].x+10} ${this.stars[1].y-10} ${this.stars[4].x} ${this.stars[4].y}`,
+        // 底部连接
+        `M ${this.stars[3].x} ${this.stars[3].y} L ${this.stars[1].x} ${this.stars[1].y+30} L ${this.stars[4].x} ${this.stars[4].y}`
+      ]
+      
+      this.starLines = heartPaths
     },
     
     // 游戏13: 最终告白
     checkConfession() {
-      if (this.confessionInput.trim() === this.correctConfession) {
-        this.completeGame(13, "完美告白！静文我爱你，永远爱你！💕")
+      // 无论输入什么都通过游戏
+      if (this.confessionInput.trim() !== '') {
+        this.completeGame(13, "谢谢你的回答！这份爱的礼物就是为你准备的！💕")
       } else {
-        this.incrementAttempts(13)
-        if (this.shouldAutoPass(13)) {
-          this.confessionInput = this.correctConfession
-          setTimeout(() => {
-            this.completeGame(13, "完美告白！静文我爱你，永远爱你！💕（系统自动帮助通过）")
-          }, 500)
+        alert("请输入您的想法～")
+      }
+    },
+    
+    // 转账相关方法
+    openAlipayTransfer() {
+      // 检查是否已设置收款人账号
+      if (!this.recipientAlipayId) {
+        alert('⚠️ 重要提醒：\n\n请先在代码中设置收款人的支付宝账号！\n在 recipientAlipayId 字段填入女友的支付宝账号或手机号。\n\n为了安全起见，不建议在代码中直接硬编码敏感信息。')
+        this.showTransferDetails = true
+        return
+      }
+      
+      const amount = this.transferAmount
+      const memo = encodeURIComponent('十三年爱情游戏通关奖励💕')
+      
+      // 如果是移动设备，尝试打开支付宝应用
+      if (this.isMobile()) {
+        // 使用支付宝转账链接
+        const alipayUrl = `alipays://platformapi/startapp?appId=09999988&actionType=scan&biz_data={"s":"money","u":"${this.recipientAlipayId}","a":"${amount}","m":"${memo}"}`
+        
+        try {
+          window.location.href = alipayUrl
+        } catch (error) {
+          // 如果无法打开应用，显示转账信息
+          this.showManualTransferGuide()
         }
+      } else {
+        // 桌面端显示转账指南
+        this.showManualTransferGuide()
+      }
+    },
+    
+    showManualTransferGuide() {
+      alert(`💰 转账信息：\n\n收款人：${this.recipientName}\n金额：¥${this.transferAmount}\n备注：十三年爱情游戏通关奖励💕\n\n请手动打开支付宝进行转账～`)
+      this.showTransferDetails = true
+    },
+    
+    showTransferInfo() {
+      this.showTransferDetails = !this.showTransferDetails
+    },
+    
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    },
+    
+    copyTransferInfo() {
+      const transferInfo = `收款人：${this.recipientName}\n金额：¥${this.transferAmount}\n备注：十三年爱情游戏通关奖励💕`
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(transferInfo).then(() => {
+          alert('转账信息已复制到剪贴板！')
+        })
+      } else {
+        // 降级方案
+        const textArea = document.createElement('textarea')
+        textArea.value = transferInfo
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        alert('转账信息已复制到剪贴板！')
       }
     },
     
@@ -819,7 +1265,7 @@ export default {
     forceCompleteCurrentGame() {
       const gameMessages = {
         1: "太棒了！31号正是我们在一起的日子！💕",
-        2: "太棒了！爱心拼图完成，就像我们的爱情一样完整！💕",
+        2: "太棒了！0528日期拼图完成，我们的纪念日！💕",
         3: "完美！情话配对成功！你懂我的心💕",
         4: "答对了！2012年我们相识，那是最美好的开始！💕",
         5: "记忆力超棒！找到了所有配对！💕",
@@ -827,10 +1273,10 @@ export default {
         7: "颜色记忆完美！你的记忆力真棒！💕",
         8: "时间轴排序正确！你记得我们的每个重要时刻！💕",
         9: "火眼金睛！所有不同之处都被你找到了！💕",
-        10: "密码正确！8月，我们第一次牵手的美好时光！💕",
+        10: "密码正确！520，我想静文念得数字！💕",
         11: "节拍完美！13下代表我们13年的爱情！💕",
         12: "星星连线成功！组成了爱的形状！💕",
-        13: "完美告白！静文我爱你，永远爱你！💕"
+        13: "谢谢你的回答！这份爱的礼物就是为你准备的！💕"
       }
       
       const message = gameMessages[this.currentGame] + "（紧急修复通过）"
@@ -840,8 +1286,78 @@ export default {
     nextGame() {
       if (this.currentGame < 13) {
         this.currentGame++
+        
+        // 重置各个游戏的状态
         if (this.currentGame === 1) {
-          this.startNumberWheel()
+          // 重置第一关状态
+          this.isFlashing = false
+          this.isBlurry = false
+          this.numberOpacity = 1
+          this.numberScale = 1
+          this.numberShake = 0
+          this.currentNumber = 0
+          if (this.flashInterval) clearInterval(this.flashInterval)
+          if (this.effectInterval) clearInterval(this.effectInterval)
+          // 不自动开始，让用户点击开始按钮
+        } else if (this.currentGame === 2) {
+          // 重置拼图游戏
+          this.puzzlePieces = [
+            {placed: false, number: null},
+            {placed: false, number: null},
+            {placed: false, number: null},
+            {placed: false, number: null}
+          ]
+          // 每次重新洗牌
+          this.shufflePuzzlePieces()
+        } else if (this.currentGame === 3) {
+          // 重置情话配对游戏
+          this.loveQuotes.forEach(quote => quote.matched = false)
+          this.secondPartsMatched = [false, false, false]
+          this.selectedLeft = -1
+          this.selectedRight = -1
+          this.shuffleQuotes()
+        } else if (this.currentGame === 5) {
+          // 重置记忆卡片游戏
+          this.initMemoryCards()
+          this.flippedCards = []
+        } else if (this.currentGame === 6) {
+          // 重置字母游戏
+          this.selectedLetters = []
+        } else if (this.currentGame === 7) {
+          // 重置颜色记忆游戏
+          this.gameStarted = false
+          this.sequenceShowing = false
+          this.colorSequence = []
+          this.playerSequence = []
+          this.activeColor = -1
+        } else if (this.currentGame === 8) {
+          // 重置时间轴游戏
+          this.shuffleTimelineEvents()
+        } else if (this.currentGame === 9) {
+          // 重置找茬游戏
+          this.differences.forEach(diff => diff.found = false)
+        } else if (this.currentGame === 10) {
+          // 重置密码游戏
+          this.passwordInput = ['', '', '']
+        } else if (this.currentGame === 11) {
+          // 重置音乐节拍游戏
+          this.rhythmGameStarted = false
+          this.beatCount = 0
+          this.beatActive = false
+          if (this.beatInterval) {
+            clearInterval(this.beatInterval)
+            this.beatInterval = null
+          }
+          document.removeEventListener('click', this.handleBeatClick)
+        } else if (this.currentGame === 12) {
+          // 重置星座连线游戏
+          this.stars.forEach(star => star.connected = false)
+          this.starLines = []
+          this.currentPath = ''
+          this.connectingStars = false
+        } else if (this.currentGame === 13) {
+          // 重置最终告白游戏
+          this.confessionInput = ''
         }
       }
     }
@@ -970,6 +1486,17 @@ export default {
   color: #ffa502;
   font-weight: bold;
   text-align: center;
+}
+
+.success-hint {
+  margin-top: 1rem;
+  color: #27ae60;
+  font-weight: bold;
+  text-align: center;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid rgba(39, 174, 96, 0.3);
 }
 
 /* 游戏2: 拼图 */
@@ -1287,6 +1814,18 @@ export default {
 }
 
 /* 游戏10: 密码锁 */
+.password-debug {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px dashed #ffd700;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  color: #ff6b6b;
+  font-weight: bold;
+  text-align: center;
+}
+
 .password-display {
   display: flex;
   gap: 0.5rem;
@@ -1383,6 +1922,98 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 15px;
+}
+
+/* 转账功能样式 */
+.transfer-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem 0;
+  backdrop-filter: blur(10px);
+}
+
+.transfer-amount {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffd700;
+  margin: 1rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.transfer-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.transfer-btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.alipay-btn {
+  background: linear-gradient(135deg, #1677ff 0%, #69c0ff 100%);
+  color: white;
+}
+
+.info-btn {
+  background: linear-gradient(135deg, #52c41a 0%, #95f985 100%);
+  color: white;
+}
+
+.copy-btn {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffd666 100%);
+  color: white;
+}
+
+.transfer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.transfer-details {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.transfer-info {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.transfer-info p {
+  margin: 0.5rem 0;
+}
+
+.transfer-actions {
+  margin-top: 1rem;
+}
+
+.transfer-notes {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.transfer-notes p {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
 }
 
 .celebration-hearts {

@@ -7,7 +7,7 @@
         <div class="avatar-video" ref="avatarContainer">
           <video 
             ref="heroVideo"
-            src="@/videos/hero-video.mp4" 
+            src="http://sy5sby4wj.hb-bkt.clouddn.com/hero-video.mp4" 
             autoplay 
             muted 
             loop 
