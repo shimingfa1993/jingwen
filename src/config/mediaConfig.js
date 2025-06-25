@@ -22,7 +22,7 @@ const MEDIA_CONFIG = {
     
     // 自定义CDN配置
     custom: {
-      baseUrl: 'http://sy5sby4wj.hb-bkt.clouddn.com'
+      baseUrl: ''
     },
     
     // 本地开发配置
@@ -101,42 +101,42 @@ if (typeof window !== 'undefined') {
 
 export default MEDIA_CONFIG
 
-// CDN媒体资源配置
-export const CDN_BASE_URL = 'https://sy5sby4wj.hb-bkt.clouddn.com'
+// 本地静态资源配置 - 使用相对路径
+export const STATIC_BASE_URL = ''
 
-// 获取CDN完整URL的辅助函数
-export function getCDNUrl(path) {
-  return `${CDN_BASE_URL}/${path}`
+// 获取静态资源完整URL的辅助函数
+export function getStaticUrl(path) {
+  return `/${path}`
 }
 
 // 时光轴图片
 export const timelineImages = {
-  1: getCDNUrl('1.png'),
-  2: getCDNUrl('2.png'),
-  3: getCDNUrl('3.png'),
-  4: getCDNUrl('4.png'),
-  5: getCDNUrl('5.png'),
-  6: getCDNUrl('6.png'),
-  7: getCDNUrl('7.png'),
-  8: getCDNUrl('8.png'),
-  9: getCDNUrl('9.png'),
-  10: getCDNUrl('10.png'),
-  11: getCDNUrl('11.png'),
-  12: getCDNUrl('12.jpg')
+  1: '/images/1.png',
+  2: '/images/2.png',
+  3: '/images/3.png',
+  4: '/images/4.png',
+  5: '/images/5.png',
+  6: '/images/6.png',
+  7: '/images/7.png',
+  8: '/images/8.png',
+  9: '/images/9.png',
+  10: '/images/10.png',
+  11: '/images/11.png',
+  12: '/images/12.jpg'
 }
 
 // 视频资源
 export const videos = {
-  hero: getCDNUrl('hero-video.mp4')
+  hero: '/videos/hero-video.mp4'
 }
 
 // 相册图片 - 生成函数
 export function getGalleryImageUrl(number, extension = 'jpg') {
-  return getCDNUrl(`${number}.${extension}`)
+  return `/images/${number}.${extension}`
 }
 
 // 默认海报图片
-export const defaultPoster = getCDNUrl('one.jpg')
+export const defaultPoster = '/videos/one.jpg'
 
 // 导出CDN基础URL供其他地方使用
 // export default CDN_BASE_URL 
